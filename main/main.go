@@ -1,116 +1,92 @@
 package main
 
 import (
-	"asciiArt"
+	"asciiArtOutPut"
 	"bufio"
 	"fmt"
 	"log"
 	"os"
 	"strings"
-	// "regexp"
 )
 
-func main() {
-	Str := os.Args[1:]
-	if len(Str) > 2 || len(Str) < 1 {
-		if len(Str) == 0 {
-			fmt.Println("Error: no arguments :).")
-			os.Exit(0)
-		} else if len(Str) > 2 {
-			fmt.Println("Error: so many Args.")
-			os.Exit(1)
-		}
-		// else {
-		// 	fmt.Println("Error: mising output file name.")
-		// 	os.Exit(2)
-		// }
-	} else {
-		var fileLines []string
-		input := os.Args[1]
-		if len(Str) == 1 {
-			if len(Str) == 1 {
-				file, err := os.Open("standard.txt")
-				if err != nil {
-					log.Fatal(err)
-				}
-				fileScanner := bufio.NewScanner(file)
-				fileScanner.Split(bufio.ScanLines)
-				for fileScanner.Scan() {
-					fileLines = append(fileLines, fileScanner.Text())
-				}
-				file.Close()
-			}
-		} else {
-			fileType := os.Args[2]
-			shadow := "shadow"
-			standard := "standard"
-			thinkertoy := "thinkertoy"
-			if fileType == standard {
-				file, err := os.Open("standard.txt")
-				if err != nil {
-					log.Fatal(err)
-				}
-				fileScanner := bufio.NewScanner(file)
-				fileScanner.Split(bufio.ScanLines)
-				for fileScanner.Scan() {
-					fileLines = append(fileLines, fileScanner.Text())
-				}
-				file.Close()
-			} else if fileType == shadow {
-				file, err := os.Open("shadow.txt")
-				if err != nil {
-					log.Fatal(err)
-				}
-				fileScanner := bufio.NewScanner(file)
-				fileScanner.Split(bufio.ScanLines)
-				for fileScanner.Scan() {
-					fileLines = append(fileLines, fileScanner.Text())
-				}
-				file.Close()
-			} else if fileType == thinkertoy {
-				file, err := os.Open("thinkertoy.txt")
-				if err != nil {
-					log.Fatal(err)
-				}
-				fileScanner := bufio.NewScanner(file)
-				fileScanner.Split(bufio.ScanLines)
-				for fileScanner.Scan() {
-					fileLines = append(fileLines, fileScanner.Text())
-				}
-				file.Close()
-			} else {
-				fmt.Println("Error: too many Args lol.")
-				os.Exit(2)
-			}
+const (
+	fileLen = 855
+)
 
-		}
-		var fileload []int
-		result := strings.ReplaceAll(input, "\\t", "   ")
-		result = strings.ReplaceAll(result, "\\n", " \\n ")
-		words := strings.Split(result, " \\n ")
-		for j := 0; j < len(words); j++ {
-			if words[j] != "" {
-				fileload = asciiArt.ConvertToASCIIArt(words[j])
-				fileload1 := asciiArt.PrintLines(fileload, fileLines)
-				for i := 0; i < len(fileload1); i++ {
-					if strings.Join(fileload1[i], "") != "" {
-						fmt.Println(strings.Join(fileload1[i], ""))
-					}
-				}
-			}  else if j != 1 && words[j] == "" {
-				fmt.Println()
-			}
-		}
-					// writer := bufio.NewWriter(file)
-			// for i := 0; i < len(fileLines); i++ {
-			// 	if i < len(fileLines)-1 {
-			// 		fmt.Fprintln(writer, fileLines[i])
-			// 	} else {
-			// 		fmt.Fprint(writer, fileLines[i])
-			// 	}
-			// }
-			// writer.Flush()
-			// fmt.Println("Wrote to file: " + output + ".")
-			// fmt.Println(fileLines)
+// check amount of arguments
+func main() {
+	if len(os.Args) < 3 || len(os.Args) > 4 {
+		fmt.Println(len(os.Args), "is Not a valid amount of arguments. \n" )
+		fmt.Println("Usage: go run . [OPTION] [STRING] [BANNER]")
+		fmt.Println("EX: go run . --output=<fileName.txt> something standard")
+		return
 	}
+	args := os.Args[1:]
+	// bol := asciiArtFs.IsValid(args[0])
+	if !(asciiArtOutPut.IsValid(args[0])) {
+		fmt.Println("This's Not a valid character.")
+		return
+	}
+
+	text := args[1] // "hello" == [0]
+	output := args[0]
+	font := "standard" //base font
+	if len(args) == 3 {
+		switch args[2] {
+		case "shadow":
+			font = "shadow"
+		case "thinkertoy":
+			font = "thinkertoy"
+		case "standard":
+			font = "standard"
+		default:
+			fmt.Println(args[2] ,"is Not a valid font.")
+			return
+		}
+	}
+
+	outputFile := strings.Split(output, "--output=")
+	outputFileName := ""
+	for _, name := range outputFile {
+		outputFileName = outputFileName + name
+	}
+	NameLen := len(outputFileName) 
+	if NameLen < 5 {
+		fmt.Println(outputFileName ,"is Not a valid output File Name.")
+		return
+	} else if !(outputFileName[NameLen-1] == 't' && outputFileName[NameLen-2] == 'x' && outputFileName[NameLen-3] == 't' && outputFileName[NameLen-4] == '.') {
+	// 	for i := len(outputFileName)-1; i >= 0; i-- {
+		fmt.Println("output File Name should end with <.txt> .")
+		return
+	// }
+	}
+	
+	// Read the content of the file
+	argsArr := strings.Split(strings.ReplaceAll(text, "\\n", "\n"), "\n")
+	arr := []string{}
+	readFile, err := os.Open("fonts/" + font + ".txt")
+	defer readFile.Close()
+
+	if err != nil {
+		log.Fatalf("failed to open file: %s", err)
+	}
+
+	fileScanner := bufio.NewScanner(readFile)
+	fileScanner.Split(bufio.ScanLines)
+
+	for fileScanner.Scan() {
+		arr = append(arr, fileScanner.Text())
+	}
+
+	if len(arr) != fileLen {
+		fmt.Println("File is corrupted.")
+		return
+	}
+	larg := len(argsArr)
+	if larg >= 2 {
+		if argsArr[larg-1] == "" && argsArr[larg-2] != "" {
+			argsArr = argsArr[:larg-1]
+		}
+	}
+	asciiArtOutPut.PrintBanners(outputFileName, argsArr, arr)
 }

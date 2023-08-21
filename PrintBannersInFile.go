@@ -1,4 +1,4 @@
-package asciiArtOutPut
+package asciiArtColor
 
 import (
 	"bufio"
@@ -38,4 +38,5 @@ func PrintBannersInFile(outputFileName string, banners, arr []string) {
 	}
 	writer.Flush()
 	fmt.Println("Wrote to file: " + outputFileName + ".")
+	//color.Cyan("file")
 }
